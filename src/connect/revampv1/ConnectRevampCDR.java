@@ -16,7 +16,7 @@ public class ConnectRevampCDR {
     String msisdn;             // Customer dial
     String timeStamp;               // timestamp
     String templates;           // templates
-    String quotas;              // quotas
+    String quotas;                // quotas
     String expiryDate;           // expiryDate
     
 
