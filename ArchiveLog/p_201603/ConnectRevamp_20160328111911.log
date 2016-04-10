@@ -1,0 +1,5 @@
+2016-03-28 11:19:11 DEBUG Main:51 - Starting log file for WatchDirectory Tool - 2016-03-28 11:19:11
+2016-03-28 11:19:11 DEBUG Main:51 - Connect Revamp's Input File : D:\Arts\ConnectRevampV1\INPUT\Ready\
+2016-03-28 11:19:11 DEBUG Main:66 - Number of files in the Watched folder is : 1
+2016-03-28 11:19:11 DEBUG Main:99 - File being processed : a
+2016-03-28 11:19:11 DEBUG Main:102 - Done Processing file : a
