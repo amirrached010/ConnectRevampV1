@@ -1,7 +1,7 @@
 /*
     This is the main class for ConnectRevampV1.
     the main method is where the execution begins
-*/
+ */
 package connect.revampv1;
 
 import static connect.revampv1.Util.getLogLevel;
