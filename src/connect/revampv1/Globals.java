@@ -12,8 +12,8 @@ package connect.revampv1;
 public class Globals {
     
 //    public static final String WATCHED_DIRECTORY="D:\\Arts\\IN-SMSToolV1\\INPUT\\Ready\\";
-    public static final String SMS_DIRECTORY="/export/home/etisalatSMS/input/";
-//    public static final String SMS_DIRECTORY="D:\\Arts\\ConnectRevampV1\\SMS_DIRECTORY\\";
+//    public static final String SMS_DIRECTORY="/export/home/etisalatSMS/input/";
+    public static final String SMS_DIRECTORY="D:\\GitRepository\\ConnectRevampV1\\SMS_DIRECTORY\\";
 //    public static final String SMS_DIRECTORY="/arc/INPlanning/ConnectRevampV1/SMS_DIRECTORY/";
     public static  String DIRECTORY_PATH;
     public static  String WATCHED_DIRECTORY;
@@ -30,4 +30,11 @@ public class Globals {
     
     public static boolean IS_OSWIN;
     static int NUMBER_OF_THREADS;
+    
+
+    public static enum TemplateParameterType {
+    TIME,QUOTA,MONEY, DATESTAMP
+ 
+    }
+    
 }   
