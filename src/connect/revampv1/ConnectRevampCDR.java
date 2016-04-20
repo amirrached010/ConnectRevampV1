@@ -5,6 +5,7 @@
  */
 package connect.revampv1;
 
+import java.util.ArrayList;
 import java.util.Properties;
 
 /**
@@ -16,8 +17,7 @@ public class ConnectRevampCDR {
     String msisdn;             // Customer dial
     String timeStamp;               // timestamp
     String templates;           // templates
-    String quotas;                // quotas
-    String expiryDate;           // expiryDate
+    ArrayList<String> parametersValue;           
     
 
    
@@ -26,28 +26,38 @@ public class ConnectRevampCDR {
     }
     
     public ConnectRevampCDR(String [] CDRs) {
-        if(CDRs.length < 6)
-            return;
+
+        parametersValue = new ArrayList<String>();
         this.msisdn = CDRs[0];
         this.timeStamp = CDRs[1];
         this.templates = CDRs[2];
-        this.quotas = CDRs[3];
-        this.expiryDate = CDRs[4];
+        for(int i=3; i<CDRs.length;i++){
+            parametersValue.add(CDRs[i]);
+        }
        
     }
 
     public ConnectRevampCDR(String CDR, int linecounter){
        
         String [] CDRs =CDR.split(",");
-        if(CDRs.length < 6)
-            return;
+        parametersValue = new ArrayList<String>();
         this.msisdn = CDRs[0];
         this.timeStamp = CDRs[1];
         this.templates = CDRs[2];
-        this.quotas = CDRs[3];
-        this.expiryDate = CDRs[4];
+        for(int i=3; i<CDRs.length;i++){
+            parametersValue.add(CDRs[i]);
+        }
       
     }
+
+    public ArrayList<String> getParametersValue() {
+        return parametersValue;
+    }
+
+    public void setParametersValue(ArrayList<String> parametersValue) {
+        this.parametersValue = parametersValue;
+    }
+    
     
     public String getMsisdn() {
         return msisdn;
@@ -55,14 +65,6 @@ public class ConnectRevampCDR {
 
     public void setMsisdn(String msisdn) {
         this.msisdn = msisdn;
-    }
-
-    public String getQuotas() {
-        return quotas;
-    }
-
-    public void setQuotas(String quotas) {
-        this.quotas = quotas;
     }
 
     public String getTemplates() {
@@ -81,18 +83,9 @@ public class ConnectRevampCDR {
         this.timeStamp = timeStamp;
     }
 
-    public String getExpiryDate() {
-        return expiryDate;
-    }
-
-    public void setExpiryDate(String expiryDate) {
-        this.expiryDate = expiryDate;
-    }
-
-    
     @Override
     public String toString() {
-        return "CDR{" + "msisdn=" + msisdn + ", quotas=" + quotas + ", pp_after=" + templates + ", time=" + timeStamp + ", rech_val=" + expiryDate + '}';
+        return "CDR{" + "msisdn=" + msisdn +  ", pp_after=" + templates + ", time=" + timeStamp + '}';
     }
     
     

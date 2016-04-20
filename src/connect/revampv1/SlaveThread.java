@@ -6,6 +6,10 @@
 package connect.revampv1;
 
 
+import com.etisalatmisr.smpp.SMSSender;
+import connect.revampv1.Globals.TemplateParameterType;
+import connect.template.TemplateParameter;
+import connect.template.TemplateParameterUnit;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
@@ -19,6 +23,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Properties;
 import java.util.Scanner;
@@ -43,13 +48,16 @@ public class SlaveThread implements Runnable {
     String tool="";
     Logger logger;
     String appenderName;
-    public SlaveThread(File newFile,String counter,Properties properties){
+    SMSSender smscSender;
+    public SlaveThread(File newFile,String counter,Properties properties,SMSSender smscSender){
         
         this.counter = counter;
         this.properties = properties;
         intializeLogger();
+        
         String filePath = (moveFile(newFile, Globals.WORK_DIRECTORY));
         currentFile = new File(filePath);
+        this.smscSender = smscSender;
     }
     
     public void execute(){
@@ -153,122 +161,138 @@ public class SlaveThread implements Runnable {
 
     public  void processLineConnectRevamp(String line, int lineCounter) {
         StringBuilder sb = new StringBuilder();
-        String [] lineFields = line.split(",",-1);
-        ConnectRevampCDR currentCDR = new ConnectRevampCDR(lineFields);
+        String [] templates =null;
+        String [] lineFields=null;
+        ConnectRevampCDR currentCDR=null;        
+        String arabicSMS = null;
+        ArrayList<TemplateParameter> allParameters =null;
         
-        logger.debug("CR : "+ line);
-        String [] templates = currentCDR.getTemplates().split(":",-1);
-        String [] quotas = currentCDR.getQuotas().split(":",-1);
-        
+        try{
+            lineFields = line.split(",",-1);
+            currentCDR = new ConnectRevampCDR(lineFields);
+
+            logger.debug("CDR : "+ line);
+        }catch(Exception e){
+            logger.error("Error in parsing CDR : "+ line);
+        }
+       
+        try{
+             templates = currentCDR.getTemplates().split(":",-1);
+        }catch(Exception e){
+            logger.error("Error in parsing Templates : "+ line);
+        }
         for(int i=0; i<templates.length-1;i++){
             
-            String sms = null;
-            sms = properties.getProperty(templates[i]+",2");
-            if(sms == null){
-                logger.error("SMS Template is not found in config file : "+templates[i]);
-                continue;
+            try{
+                allParameters = HandleTemplate(templates[i]);
+            }catch(Exception e){
+                logger.error("Error in Hanlding Parameter : "+ templates[i]);
             }
-            logger.debug("SMS Template ID: " + templates[i]);
-            logger.debug("SMS Template: "+sms);
-            if(sms.contains("$param1")){
-                long quota = 0;
-                try{
-                    quota = Long.parseLong(quotas[i]);
-                    
-                }catch(Exception e){
-                    logger.error("Cannot Parse long for the quota : "+ quotas[i] + " and the template : "+ templates[i]);
-                }
-                if(quota == 0){
-                    logger.error("Error in parsing quota");
-                }
-                else {
-//                    if(quota >= 1073741824){
-//                        //Gega
-//                        double currentQuota = quota;
-//                        currentQuota = currentQuota /(1024*1024*1024);
-//                        
-//                        logger.debug("Quota parsed and processed in Gigabytes : "+currentQuota+" \\u062C\\u064A\\u062C\\u0627");
-//                        sms = sms.replace("$param1", currentQuota+" \\u062C\\u064A\\u062C\\u0627");
-//                    }
-//                    else {
-                        //Mega
-                        double currentQuota = quota;
-                        currentQuota = currentQuota /(1024*1024);
-                        quota = quota /(1024*1024);
-                        logger.debug("Quota parsed and processed in Megabytes : "+quota+" \\u0645\\u064A\\u062C\\u0627");
-                        sms = sms.replace("$param1", quota+" \\u0645\\u064A\\u062C\\u0627");
-//                    }
-                    
-                }
-                if(sms.contains("$param2")){
-                    String currenDate = currentCDR.getExpiryDate().substring(0, 4);
-                    currenDate +="-"+currentCDR.getExpiryDate().substring(4, 6);
-                    currenDate +="-"+currentCDR.getExpiryDate().substring(6, 8);
-                    sms = sms.replace("$param2", currenDate);
+            
+            try{
+                arabicSMS = properties.getProperty(templates[i]).split(",")[properties.getProperty(templates[i]).split(",").length-1];
+            }catch(Exception e){
+                logger.error("Error in getting the arabic SMS ");
+            }
+            if(allParameters != null){
+                for(int j=0; j<allParameters.size();j++){
+                    try{
+                        if(allParameters.get(j).getTemplateParameterUnit().getTemplateParameterUnitType() == TemplateParameterType.DATESTAMP)
+                            allParameters.get(j).setTemplateParameterValue(currentCDR.getParametersValue().get(j));
+                        else
+                            allParameters.get(j).setTemplateParameterValue(currentCDR.getParametersValue().get(j).split(":",-1)[i]);
+                        int k=j+1;
+                        arabicSMS = arabicSMS.replace("$param"+k, allParameters.get(j).getTemplateParameterValue());
+                    }
+                    catch(Exception e){
+                        logger.error("Error in Parsing Parameter :  " + currentCDR.getParametersValue().get(j));
+                    }
                 }
             }
             
-            logger.debug("The SMS is being sent");
-            sb.append(currentCDR.msisdn+","+sms+",2");
-            sb.append(System.lineSeparator());
-            
+            try{
+                sendSMS(properties.getProperty(templates[i]).split(",")[0],currentCDR.msisdn,arabicSMS, lineCounter);
+                logger.debug("Sucessfully sent SMS for the template : "+templates[i]);
+            }
+            catch(Exception e){
+                    logger.error("Error in Sending SMS");
+                }
         }
-        sendSMS(sb.toString(),currentCDR.msisdn, lineCounter);
+        
     }
     
-    public  void sendSMS(String toString,String dial, int linecount) {
-        Writer writer = null;
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmss");
-        String currentFileName ="";
-        File resultFile = null;
-        File newFile  = null;
-        if(Util.getOSType() == Globals.OS_UNIX){
-            currentFileName = Globals.SMS_PREPARATION_DIRECTORY+"ConnectRevamp_"+sdf.format(new Date())+"_T"+dial+"_L"+linecount+currentFile.getName();
-            resultFile = new File(currentFileName);
-            newFile = new File(Globals.SMS_DIRECTORY+resultFile.getName());
-                    
-        }
-        else{
-            currentFileName = Globals.SMS_PREPARATION_DIRECTORY+"ConnectRevamp_"+sdf.format(new Date())+"_T"+dial+"_L"+linecount+currentFile.getName();
-            resultFile = new File(currentFileName);
-            newFile = new File(Globals.SMS_DIRECTORY+resultFile.getName());
-        }
+    public  void sendSMS(String sender,String dial,String toString,int lineCounter) {
+
+        // For Deployment
+          try{
+            String [] smsSplit = toString.split(",");
+            boolean result = smscSender.sendMessage(sender, "0"+dial, toString,2);
+            logger.debug("Successfully Sending SMS");
+            if(result){
+               logger.debug(toString);
+               logger.debug("Successfully Sent SMS to the dial "+dial); 
+            } else 
+            {
+                logger.debug(toString);
+                logger.debug("Failed to send SMS to the dial  "+dial); 
+            }
+        }catch(Exception e){
+            logger.error("Failed to send SMS to the dial  "+dial); 
+        }  
         
-        
-        if(!resultFile.exists())
-            try {
-                resultFile.createNewFile();
-        } catch (IOException ex) {
-           logger.error("Cannot create the SMS file in the SMS Preparation Directory: "+ currentFileName);
-        }
-        try {
-            FileWriter fw = new FileWriter(resultFile,true);
-            //BufferedWriter writer give better performance
-            BufferedWriter bw = new BufferedWriter(fw);
-            bw.append(toString);
-            bw.close();
-            // Send the file to the SMS tool
-            //logger.info("Deleting moved file : "+ newFile.delete());
-            try{
-            Files.move(Paths.get(resultFile.getAbsolutePath()), Paths.get(newFile.getAbsolutePath()),StandardCopyOption.REPLACE_EXISTING);
-            logger.info("File "+ newFile.getAbsolutePath()+" is moved to the SMS Directory : "+ Globals.SMS_DIRECTORY);
-            }catch(Exception e){
-                logger.error("Failed to move File "+ resultFile.getAbsolutePath()+" to the SMS Directory : " + Globals.SMS_DIRECTORY + " under name : " + newFile.getName());
-                logger.error("Exception : "+ e);
-            }    
+        //For Testing
+//        Writer writer = null;
+//        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmss");
+//        String currentFileName ="";
+//        File resultFile = null;
+//        File newFile  = null;
+//        if(Util.getOSType() == Globals.OS_UNIX){
+//            currentFileName = Globals.SMS_PREPARATION_DIRECTORY+"ConnectRevamp_"+sdf.format(new Date())+"_T"+dial+"_L"+lineCounter+currentFile.getName();
+//            resultFile = new File(currentFileName);
+//            newFile = new File(Globals.SMS_DIRECTORY+resultFile.getName());
+//                    
+//        }
+//        else{
+//            currentFileName = Globals.SMS_PREPARATION_DIRECTORY+"ConnectRevamp_"+sdf.format(new Date())+"_T"+dial+"_L"+lineCounter+currentFile.getName();
+//            resultFile = new File(currentFileName);
+//            newFile = new File(Globals.SMS_DIRECTORY+resultFile.getName());
+//        }
+//        
+//        
+//        if(!resultFile.exists())
+//            try {
+//                resultFile.createNewFile();
+//        } catch (IOException ex) {
+//           logger.error("Cannot create the SMS file in the SMS Preparation Directory: "+ currentFileName);
+//        }
+//        try {
+//            FileWriter fw = new FileWriter(resultFile,true);
+//            //BufferedWriter writer give better performance
+//            BufferedWriter bw = new BufferedWriter(fw);
+//            bw.append(toString);
+//            bw.close();
+//            // Send the file to the SMS tool
+//            //logger.info("Deleting moved file : "+ newFile.delete());
+//            try{
+//            Files.move(Paths.get(resultFile.getAbsolutePath()), Paths.get(newFile.getAbsolutePath()),StandardCopyOption.REPLACE_EXISTING);
+//            logger.info("File "+ newFile.getAbsolutePath()+" is moved to the SMS Directory : "+ Globals.SMS_DIRECTORY);
+//            }catch(Exception e){
+//                logger.error("Failed to move File "+ resultFile.getAbsolutePath()+" to the SMS Directory : " + Globals.SMS_DIRECTORY + " under name : " + newFile.getName());
+//                logger.error("Exception : "+ e);
+//            }    
 //            if(resultFile.renameTo(newFile)){
 //              logger.info("File "+ newFile.getAbsolutePath()+" is moved to the SMS Directory");
 //            }
 //            else {
 //               logger.error("Failed to move File "+ resultFile.getAbsolutePath()+" to the SMS Directory : " + Globals.SMS_DIRECTORY + " under name : " + newFile.getName());
 //            }
-        } catch (UnsupportedEncodingException ex) {
-            logger.error("Error in writing in file : "+ currentFileName);
-        } catch (FileNotFoundException ex) {
-            logger.error("File not found : "+ currentFileName);
-        } catch (IOException ex) {
-            logger.error("IO Exception: "+ currentFileName);;
-        }
+//        } catch (UnsupportedEncodingException ex) {
+//            logger.error("Error in writing in file : "+ currentFileName);
+//        } catch (FileNotFoundException ex) {
+//            logger.error("File not found : "+ currentFileName);
+//        } catch (IOException ex) {
+//            logger.error("IO Exception: "+ currentFileName);;
+//        }
     }
     
     public  void archiveFile(File currentFile){
@@ -363,6 +387,27 @@ public class SlaveThread implements Runnable {
             logger.debug("Failed to move File "+ file.getName() +" to "+newFile.getAbsolutePath());
             return "Failed to move";
         }
+    }
+
+    private ArrayList<TemplateParameter> HandleTemplate(String template) {
+        ArrayList<TemplateParameter> allParameters = new ArrayList<TemplateParameter>();
+        String templatParametersArray [] = properties.getProperty(template).split(",");
+        int numberOfParamters = Integer.parseInt(templatParametersArray[1]);
+        if(numberOfParamters == 0){
+            //return the arabic SMS Script
+            return null;
+        }else {
+            for(int i=2; i<numberOfParamters+2; i++){
+                TemplateParameterUnit templateParameterUnit = TemplateParameterUnit.getTemplateParameterUnit(templatParametersArray[i],logger);
+                TemplateParameter currentParameter = new TemplateParameter();
+                currentParameter.setTemplateParameterUnit(templateParameterUnit);
+                allParameters.add(currentParameter);
+            }
+            return allParameters;
+            
+        }
+        
+        
     }
     
     

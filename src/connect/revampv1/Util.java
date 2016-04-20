@@ -259,7 +259,7 @@ public class Util {
 //        Globals.INSTANT_LOG_PATH= DIRECTORY_PATH+"logs\\";   
 //        Globals.ARCHIVE_LOG_DIRECTORY = DIRECTORY_PATH+"ArchiveLog\\";
 //        Globals.ARCHIVE_DIRECTORY = DIRECTORY_PATH+"Archive\\";
-        
+//        
         Globals.WATCHED_DIRECTORY=DIRECTORY_PATH+"INPUT/Ready/";
         Globals.WORK_DIRECTORY=DIRECTORY_PATH+"INPUT/Work/";
         Globals.SMS_PREPARATION_DIRECTORY=DIRECTORY_PATH+"SMSPreparation/";    
