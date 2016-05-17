@@ -1,17 +1,12 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+
 package connect.revampv1;
 
 import java.util.ArrayList;
 import java.util.Properties;
 
 /**
- *
- * @author Amir.Rashed
-
+ * This class containing The parsing of the CDR of ConnectRevamp.
+ * 
  */
 public class ConnectRevampCDR {
     String msisdn;             // Customer dial

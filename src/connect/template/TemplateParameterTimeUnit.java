@@ -1,8 +1,4 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+
 package connect.template;
 
 import connect.revampv1.Globals.TemplateParameterType;
@@ -14,7 +10,7 @@ import org.apache.log4j.Logger;
 
 /**
  *
- * @author Amir.Rashed
+ * This class handles the Template Parameter in case it is a Time Unit.
  */
 public class TemplateParameterTimeUnit extends TemplateParameterUnit{
 
@@ -55,6 +51,12 @@ public class TemplateParameterTimeUnit extends TemplateParameterUnit{
         return super.templateParameterUnitType;
     }
 
+    /**
+     * Handles the conversion between what is sent in the CDR and what needs to appear in the SMS.
+     * 
+     * @param parameter
+     * @return The Time String that will appear in the SMS. 
+     */
     @Override
     public String parseParameter(String parameter) {
         if(super.templateParameterUnitString == "SEC"){

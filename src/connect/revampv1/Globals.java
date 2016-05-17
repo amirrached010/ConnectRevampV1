@@ -1,19 +1,16 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+
 package connect.revampv1;
 
 /**
- *
- * @author Amir.Rashed
+ * This is the Globals class for the IN-SMS Tool V1.
+ * It contains all the global variables that need to be set only once and used across all the execution.
+ * 
  */
 public class Globals {
     
 //    public static final String WATCHED_DIRECTORY="D:\\Arts\\IN-SMSToolV1\\INPUT\\Ready\\";
-//    public static final String SMS_DIRECTORY="/export/home/etisalatSMS/input/";
-    public static final String SMS_DIRECTORY="D:\\GitRepository\\ConnectRevampV1\\SMS_DIRECTORY\\";
+//    public static final String SMS_DIRECTORY="/export/home/etisalatSMS/input/"; 
+//   public static final String SMS_DIRECTORY="D:\\GitRepository\\ConnectRevampV1\\SMS_DIRECTORY\\";
 //    public static final String SMS_DIRECTORY="/arc/INPlanning/ConnectRevampV1/SMS_DIRECTORY/";
     public static  String DIRECTORY_PATH;
     public static  String WATCHED_DIRECTORY;

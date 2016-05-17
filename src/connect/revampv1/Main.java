@@ -38,12 +38,13 @@ public class Main {
     static Set<Future<String>> resultsHashSet = new LinkedHashSet<Future<String>>();
     static SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     static SMSSender smscSender;
-    public static void main(String args[]) {
-        
-        
+    /**
+     * This is the start of the execution.
+     * @param args 
+     */
+    public static void main(String args[]) {        
         logger = Logger.getLogger(Main.class);
         Util.intializeLogger(logger);
-        
         if(!initiatePropertiesFile())
             return;
         initiateSMSCConfigurations();
@@ -117,6 +118,12 @@ public class Main {
         
     }
     
+    /**
+     * Handles the file passed in the parameter
+     * Ignores it if it is a temp file.
+     * Assigns a thread to execute it and runs the thread.
+     * @param toFile 
+     */
     private static void HandleFile(File toFile) {
         File currentFile = toFile;
         try {
@@ -136,6 +143,12 @@ public class Main {
         counter++;
     }
 
+    /**
+    * Responsible of loading the properties file "config.properties" located under Resources.
+    * Throws an exception if the file was not found or the configuration was not successfully
+    * loaded.
+    * 
+    */
     public static boolean initiatePropertiesFile(){
         properties = new Properties();
         properties.clear();
@@ -155,7 +168,11 @@ public class Main {
         }
         return false;
     }
-    
+    /**
+     * Check if there is a free thread to handle a new file or not.
+     * @param BulkFiles
+     * @return false if there is no empty thread, true otherwise
+     */
     public static boolean CheckBulkFiles(ArrayList<File> BulkFiles){
         
         for(int i=0; i<BulkFiles.size();i++){
@@ -171,6 +188,15 @@ public class Main {
         return true;
     }
 
+    /**
+    * Responsible of setting the connection with the SMSC and mapping its 
+    * configurations from the smpp.cfg file located in the Resources folder.
+    * Throws an exception if the file was not found or the configuration was not successfully
+    * loaded.
+    * @param void
+    * @return void
+    * 
+    */
     public static void initiateSMSCConfigurations(){
         Properties smsSenderProperties = new Properties();
         FileInputStream fileInput;

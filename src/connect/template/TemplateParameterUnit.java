@@ -10,7 +10,7 @@ import org.apache.log4j.Logger;
 
 /**
  *
- * @author Amir.Rashed
+ * This is an abstract class.
  */
 public abstract class TemplateParameterUnit {
     String templateParameterUnitString;
@@ -26,6 +26,12 @@ public abstract class TemplateParameterUnit {
 
     public abstract String parseParameter(String parameter);
     
+    /**
+     * Gets the type of the TemplateParameter from the passed Unit String.
+     * @param unit
+     * @param logger
+     * @return 
+     */
     public static TemplateParameterUnit getTemplateParameterUnit(String unit,Logger logger){
         TemplateParameterUnit currentUnit = new TemplateParameterTimeUnit(unit,logger);
         

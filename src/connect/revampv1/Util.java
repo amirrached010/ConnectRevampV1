@@ -30,6 +30,10 @@ import org.apache.log4j.RollingFileAppender;
  */
 public class Util {
     
+    /**
+     * Initialize the logger in the main class only.
+     * @param logger 
+     */
     public static void intializeLogger(Logger logger){
 
         logger.removeAllAppenders();
@@ -52,6 +56,11 @@ public class Util {
         
     }
 
+    /**
+     * Gets the logging level from the config file.
+     * @param level
+     * @return 
+     */
     public static org.apache.log4j.Level getLogLevel(String level){
         if(level.equalsIgnoreCase("DEBUG"))
             return org.apache.log4j.Level.DEBUG;
@@ -62,6 +71,10 @@ public class Util {
         return org.apache.log4j.Level.DEBUG;
     }
     
+    /**
+     * Gets the OS Type either UNIX or WIN.
+     * @return 
+     */
     public static boolean getOSType(){
         String OS = System.getProperty("os.name").toLowerCase();
         if(OS.contains("win"))
@@ -70,6 +83,11 @@ public class Util {
             return Globals.OS_UNIX;
     }
     
+    /**
+     * Accumulates the log each hour.
+     * Creates the directory in the ArchiveLog Directory.
+     * Calls the accumulateLogHelper method.
+     */
     public static void accumulateLogs(){
         SimpleDateFormat sdf1 = new SimpleDateFormat("yyyyMMdd");
         File file =null;
@@ -92,6 +110,10 @@ public class Util {
         accumulateLogHelper();
     }
 
+    /**
+     * Accumulates all logs in the Log directory that are older than the current hour.
+     * 
+     */
     public static void accumulateLogHelper(){
         SimpleDateFormat sdf1 = new SimpleDateFormat("yyyyMMddHH");
         SimpleDateFormat sdf2 = new SimpleDateFormat("yyyyMMdd");
@@ -137,6 +159,11 @@ public class Util {
         }
     }
    
+    /**
+     * Reads from passed file.
+     * @param dialsFile // file to be read.
+     * @return the content of the file as a String.
+     */
     public static String readFromFile(File dialsFile){
         StringBuilder sb = new StringBuilder();
         BufferedReader br = null;
@@ -164,6 +191,11 @@ public class Util {
         return sb.toString();
     }
     
+    /**
+     * Writes the passed StringBuilder in the the passed file.
+     * @param result // The StringBuilder containing the string to be written.
+     * @param currentFileName //The full path of the file where the StringBuilder needs to write into.
+     */
     public static void WriteHourlyLog(StringBuilder result,String currentFileName){
         
         File resultFile = new File(currentFileName);
@@ -188,6 +220,11 @@ public class Util {
         }
     }
     
+    /**
+     * Checks the capacity of the log.
+     * Initialize a new log if the size of the log file exceeded the capacity.
+     * @param logger 
+     */
     public static void checkLogCapacity(Logger logger){
         RollingFileAppender rollingAppender = (RollingFileAppender) logger.getAppender("GlobalAppender");
         File logFile = new File(rollingAppender.getFile());
@@ -196,6 +233,10 @@ public class Util {
             Util.intializeLogger(logger);
     }
     
+    /**
+     * Archives the WatchDogFile each day.
+     * @param logger 
+     */
     public static void archiveWatchDoLogFile(Logger logger){
         SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
         String dateString = sdf.format(new Date());
@@ -252,6 +293,9 @@ public class Util {
         }
     }
     
+    /**
+     * Set the Globals variable located in the Globals class, in order to be used across all the execution.
+     */
     public static void setGlobals(){
 //        Globals.WATCHED_DIRECTORY=DIRECTORY_PATH+"INPUT\\Ready\\";
 //        Globals.WORK_DIRECTORY=DIRECTORY_PATH+"INPUT\\Work\\";

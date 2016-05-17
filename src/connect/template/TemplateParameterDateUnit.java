@@ -1,8 +1,4 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+
 package connect.template;
 
 import java.text.ParseException;
@@ -14,7 +10,7 @@ import connect.revampv1.Globals.TemplateParameterType;
 
 /**
  *
- * @author Amir.Rashed
+ * This class handles the Template Parameter in case it is a Date Unit.
  */
 public class TemplateParameterDateUnit extends TemplateParameterUnit{
 
@@ -55,6 +51,12 @@ public class TemplateParameterDateUnit extends TemplateParameterUnit{
         return super.templateParameterUnitType;
     }
 
+    /**
+     * Handles the conversion between what is sent in the CDR and what needs to appear in the SMS.
+     * 
+     * @param parameter
+     * @return The Date String that will appear in the SMS. 
+     */
     @Override
     public String parseParameter(String parameter) {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");

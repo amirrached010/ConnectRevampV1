@@ -1,16 +1,14 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+
 package connect.template;
 
 /**
+ * This class handles the each parameter related to any template sent in the CDR.
  *
- * @author Amir.Rashed
  */
 public class TemplateParameter {
+    // The Unit of the templateParameter.
     TemplateParameterUnit templateParameterUnit;
+    // The value of the templateParameter.
     String templateParameterValue;
 
     public TemplateParameter() {

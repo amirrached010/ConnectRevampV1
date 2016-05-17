@@ -34,11 +34,10 @@ import org.apache.log4j.RollingFileAppender;
 import org.apache.log4j.Logger;
 
 
-
-
 /**
- *
- * @author amir.rashed
+ * This class is the runnable thread called with each file assigned from the main class
+ * based on the criteria implemented in the Handle file method in the main class.
+ * Implements the interface Runnable.
  */
 public class SlaveThread implements Runnable {
     
@@ -49,21 +48,33 @@ public class SlaveThread implements Runnable {
     Logger logger;
     String appenderName;
     SMSSender smscSender;
+    
+    /**
+     * 
+     * Initialize the passed parameters.
+     * Initialize the logger for the current thread.
+     * Move the input file to the working directory.
+     * @param newFile
+     * @param counter
+     * @param properties
+     * @param smscSender 
+     */
     public SlaveThread(File newFile,String counter,Properties properties,SMSSender smscSender){
         
         this.counter = counter;
         this.properties = properties;
         intializeLogger();
-        
         String filePath = (moveFile(newFile, Globals.WORK_DIRECTORY));
         currentFile = new File(filePath);
         this.smscSender = smscSender;
     }
     
+    /**
+     * Handle the path taken by the file since the start of its execution
+     * till the end.
+     */
     public void execute(){
 
-        //process the file.
-        
         try{
             if(currentFile == null || !currentFile.isFile())
                 throw new Exception();
@@ -82,6 +93,9 @@ public class SlaveThread implements Runnable {
 //        }        
     }
 
+    /**
+     * Frees the appender of the logger by closing it.
+     */
     public void stopThread(){
         logger.debug("Thread Stopped for file : "+ currentFile.getName());
         logger.debug("------------------------------------------------------------------------------------------------");
@@ -89,6 +103,9 @@ public class SlaveThread implements Runnable {
         //LogManager.shutdown();
     }
     
+    /**
+     * Initialize the logger for the current thread.
+     */
     public  void intializeLogger(){
 
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
@@ -112,6 +129,11 @@ public class SlaveThread implements Runnable {
         
     }
 
+    /**
+     * Processes the working file by process each line one by one.
+     * Calls processLineConnectRevamp method to process each line of the file.
+     * @param workFile 
+     */
     public  void processFile(File workFile){
         FileInputStream inputStream = null;
         Scanner sc = null;
@@ -159,6 +181,14 @@ public class SlaveThread implements Runnable {
         }
     }
 
+    /**
+     * Processes the Connect Revamp Stream.
+     * Parses the CDR that contains 4 fields comma separated.
+     * Gets the corresponding SMS from the config file based on the templates
+     * Sends the SMS by calling the method sendSMS.
+     * @param line // the line containing the CDR.
+     * @param lineCounter // the line number in the file.
+     */
     public  void processLineConnectRevamp(String line, int lineCounter) {
         StringBuilder sb = new StringBuilder();
         String [] templates =null;
@@ -221,6 +251,14 @@ public class SlaveThread implements Runnable {
         
     }
     
+    /**
+     * Sends the SMS directly to the SMSC using the object smscSender and the method sendMessage
+     * in the smpp.jar library.
+     * @param sender //The sender of the SMS.
+     * @param dial  // The dial receiving the SMS.
+     * @param toString // The SMS Script.
+     * @param lineCounter //The line number of the CDR requesting sending the passed SMS.
+     */
     public  void sendSMS(String sender,String dial,String toString,int lineCounter) {
 
         // For Deployment
@@ -295,6 +333,11 @@ public class SlaveThread implements Runnable {
 //        }
     }
     
+    /**
+     * Archives the file after processing it in the archive directory.
+     * @param currentFile
+     * @return nothing
+     */
     public  void archiveFile(File currentFile){
         File newFile = null;
         
@@ -356,11 +399,21 @@ public class SlaveThread implements Runnable {
      
     }
 
+    /**
+     * Overridden method from the Runnable class that starts the execution of the thread.
+     */
     @Override
     public void run()  {
        execute();      
     }
 
+    /**
+     * Moves the passed file to the passed destination.
+     * @param file // the file needed to be moved.
+     * @param destination // the destination path
+     * @return the path to the new file if the move is done successfully or "Failed to move" if the move
+     * failed
+     */
     public String moveFile(File file, String destination){
         File directory = new File(destination);
         if(!directory.isDirectory()){
@@ -389,6 +442,12 @@ public class SlaveThread implements Runnable {
         }
     }
 
+    /**
+     * Handles the template sent in the CDR.
+     * Defines the template parameter unit.
+     * @param template
+     * @return an ArrayList of TemplateParameters related to  the template passed
+     */
     private ArrayList<TemplateParameter> HandleTemplate(String template) {
         ArrayList<TemplateParameter> allParameters = new ArrayList<TemplateParameter>();
         String templatParametersArray [] = properties.getProperty(template).split(",");
